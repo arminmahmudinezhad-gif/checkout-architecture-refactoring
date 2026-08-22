@@ -622,6 +622,27 @@ then applied each approved scope separately.
   rounding, validation boundaries, notification suppression, and the demo's
   bundle checkout path.
 
+#### Agent Execution Log
+
+The Plan session ran in the OpenCode TUI after the Plan agent was explicitly
+selected. Each implementation session then ran the approved scope through the
+real Build agent with this CLI form:
+
+```powershell
+opencode.cmd run --agent build --auto --title "<session title>" "<approved scope>"
+```
+
+| Session | Mode and scope | Files changed | Verification and human review | Commit |
+| --- | --- | --- | --- | --- |
+| `SOLID refactoring compliance review` | Plan in TUI; load the Skill, inspect the completed applied design, classify recommendations, and make no edits | None | Reported accepted/corrected/rejected documentation findings, the divergent payment registries, and four regression-test gaps | No commit; read-only |
+| `Apply approved Plan review` | Build via CLI; apply only approved documentation corrections | `README.md`, `AGENTS.md`, `02-Applied-OOD-Principles/REFACTORING_PLAN.md` | `git diff --check` passed with line-ending warnings; 7 initial and 14 applied tests passed; both demos passed. Human review refined the SRP wording and removed one remaining approval overclaim. | `482e7c9` |
+| `Fix payment registration consistency` | Build via CLI; remove implicit `PaymentProcessor` defaults and use the composition root in built-in processor tests | `store/payment.py`, `tests/test_payment.py` in the applied version | 15 applied tests passed; the applied demo passed; `git diff --check` passed with line-ending warnings. Human review accepted the implementation without further code changes. | `2afda21` |
+| `Add applied regression coverage` | Build via CLI; add pricing, validation, notification-suppression, and bundle regression tests | `tests/test_order_service.py`, `tests/test_pricing.py`, `tests/test_validation.py` in the applied version | 25 applied tests passed; the applied demo passed; `git diff --check` passed with line-ending warnings. Human review removed private `_rules` access and changed the bundle test to use `build_demo_orders()`. | `a0523ab` |
+
+The final documentation pass recorded the current and historical counts in
+`7fc1195`. A final independent run then passed all 7 initial tests, all 25
+applied tests, both demos, and `git diff --check`.
+
 Current post-experiment verification passes 7 tests in the initial version and
 25 tests in the applied version, and both demos complete successfully. The
 historical A10/S10 snapshot remains 7 and 14 tests. These follow-up changes are
