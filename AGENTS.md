@@ -23,8 +23,9 @@ The assignment PDF is authoritative when it is available to the session.
 
 ## Team And Commit Rules
 
-- Armin Mahmudinezhad and Soroush Pournasiri must each author exactly 10
-  meaningful commits.
+- Armin Mahmudinezhad and Soroush Pournasiri each completed 10 meaningful
+  original experiment commits. Explicitly approved post-experiment correction
+  commits are allowed and are excluded from the original measurements.
 - Armin works on `armin/work`; Soroush works on `soroush/work`.
 - The user creates commits and pushes manually. Never run `git commit`, amend,
   or push unless explicitly requested.
@@ -99,7 +100,9 @@ Use fast-forward merges only; do not create merge commits for branch
 handoffs. Confirm equality with `git rev-parse origin/armin/work
 origin/soroush/work` after the last synchronization.
 
-No further meaningful commits are planned.
+No additional original experiment commits are planned. Explicitly approved
+post-experiment correction commits remain permitted and are excluded from the
+original measurements.
 
 ## Working Expectations
 
