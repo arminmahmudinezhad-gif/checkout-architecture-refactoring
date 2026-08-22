@@ -143,6 +143,8 @@ corrections.
 | --- | --- | --- | --- |
 | SRP | No | `store/order_service.py`, `OrderService` | The service validates orders, calculates totals and shipping, processes payment, persists data, sends notifications, and prints receipts. |
 | OCP | No | `store/payment.py`, `PaymentProcessor.process`; `store/pricing.py`, `DiscountCalculator.calculate` | Adding a payment method or discount rule requires modifying an existing conditional chain. |
+| LSP | No | `store/notification.py`, `SmsOnlyNotifier` | The subtype rejects inherited email and push operations by raising `NotImplementedError`, so it cannot safely replace `NotificationService`. |
+| ISP | No | `store/notification.py`, `NotificationService` | Clients and subtypes are forced to depend on email, SMS, and push operations even when they support only one channel. |
 | DIP | No | `store/order_service.py`, `OrderService.__init__` | The high-level checkout workflow constructs and depends directly on concrete payment, notification, pricing, and database classes. |
 
 Paths in this analysis are relative to `01-Without-OOD-Principles`.
@@ -191,6 +193,49 @@ checkout workflow.
 implementation and registering or injecting it. Existing, tested implementations
 remain closed to modification, while the system remains open to extension.
 
+### LSP: Liskov Substitution Principle
+
+**Violation location:** `store/notification.py`, where `SmsOnlyNotifier`
+inherits from `NotificationService`.
+
+**Cause of violation:** `NotificationService` establishes that its instances
+can send email, SMS, and push notifications. `SmsOnlyNotifier` inherits that
+contract but raises `NotImplementedError` for `send_email` and `send_push`. A
+client that works with `NotificationService` can therefore fail when an
+`SmsOnlyNotifier` is substituted, even though it is declared as a subtype.
+
+**Proposed refactoring:** Remove the inheritance relationship between
+`SmsOnlyNotifier` and the multi-channel service. Introduce channel-specific
+notifier implementations that share a small notification abstraction, such as
+a single `send` operation. The checkout workflow can receive a collection of
+notifiers and invoke the same supported operation on each one.
+
+**Reason for this approach:** Every notifier will satisfy the complete contract
+it advertises. Email, SMS, and push implementations can then be substituted
+without introducing unsupported operations or changing expected client
+behavior.
+
+### ISP: Interface Segregation Principle
+
+**Violation location:** `store/notification.py`, particularly the combined
+email, SMS, and push operations exposed by `NotificationService`.
+
+**Cause of violation:** The notification contract groups three independent
+delivery channels. A notifier that supports only SMS is still forced to inherit
+email and push methods, which leads to placeholder implementations that throw
+exceptions.
+
+**Proposed refactoring:** Replace the broad channel-specific contract with a
+small `Notifier` abstraction containing one `send(customer, message)` operation.
+Provide separate `EmailNotifier`, `SmsNotifier`, and `PushNotifier`
+implementations. Consumers should depend only on the notifier instances they
+actually use.
+
+**Reason for this approach:** The smaller contract removes unsupported methods,
+allows channels to evolve independently, and lets the checkout service add or
+remove notification channels without requiring changes to unrelated notifier
+classes.
+
 ### DIP: Dependency Inversion Principle
 
 **Violation location:** `store/order_service.py`, particularly
@@ -210,6 +255,33 @@ in the application composition root.
 rather than infrastructure details. Constructor injection also makes behavior
 replaceable and allows tests to use controlled collaborators without patching
 internals.
+
+### Current Concrete Dependency Map
+
+Before refactoring, the high-level checkout workflow has these direct
+dependencies:
+
+```text
+OrderService
+|-- DiscountCalculator
+|-- PaymentProcessor
+|-- NotificationService
+`-- MySqlDatabase
+
+PaymentProcessor
+`-- Order and Customer payment fields
+
+DiscountCalculator
+`-- Order pricing, coupon, item-count, and customer VIP fields
+
+SmsOnlyNotifier
+`-- NotificationService inheritance
+```
+
+`OrderService.__init__` constructs all four concrete collaborators itself.
+`OrderService.process_order` also chooses email and SMS operations directly.
+These dependencies couple the checkout policy to infrastructure and
+channel-specific behavior, supporting the SRP, OCP, ISP, and DIP findings above.
 
 ### Verification
 
