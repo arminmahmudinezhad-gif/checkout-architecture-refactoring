@@ -295,3 +295,57 @@ python -m store.main
 
 All seven tests pass, and the demo completes the credit-card, bundle, and cash
 checkout scenarios.
+
+## Step 3: Refactoring Plan Review (S7)
+
+Armin's A7 proposed `02-Applied-OOD-Principles/REFACTORING_PLAN.md`. Soroush
+reviewed it against the five SOLID violations from Step 2 and refined it in
+the same file. The plan remains a proposal until the user approves it.
+
+### Accepted Plan Suggestions
+
+- The five-phase structure was kept because it maps one-to-one onto the
+  documented violations: payment abstractions (payment OCP), workflow
+  decoupling (SRP, discount OCP, LSP, ISP, DIP), cash as a pure extension, and
+  a final verification phase.
+- Keeping `OrderService` as the orchestrator while moving validation and
+  receipt printing behind focused collaborators.
+- Using a single `contracts.py` for the remaining structural contracts instead
+  of one file per contract.
+- Constructor injection with the concrete construction confined to
+  `store/main.py` as the composition root.
+- Stating that cash must be absent before Phase 3 (Armin's A9) so the added
+  and refactored versions stay comparable.
+
+### Corrected Plan Suggestions
+
+- The baseline commit was confirmed with git evidence as `6908c62`
+  (no `cash` branch in `payment.py`, no cash order in `main.py` at that
+  revision), and Phase 0 was changed to copy from the git tree at that commit
+  (`git archive 6908c62 store`) rather than from the current
+  `01-Without-OOD-Principles`, which already contains cash.
+- A8/S8 file ownership was not explicit enough to prevent overlapping edits;
+  a phase-by-owner file table was added so Armin and Soroush never edit the
+  same files in the same phase window.
+- The verification commands were noted to use `python3` in this environment
+  while the original plan wrote `python`.
+
+### Rejected Plan Suggestions
+
+- A dedicated receipt-formatting contract was rejected. The receipt printer
+  has a single implementation and one public method, so a separate protocol
+  would be an abstraction without a consumer.
+- A push notification implementation was rejected. The checkout workflow never
+  sends push, so implementing `PushNotifier` would reproduce the unused
+  operations that created the original ISP violation.
+- Separate handler/rule directories were rejected in favor of keeping handlers,
+  notifiers, and discount rules in the modules they belong to
+  (`payment.py`, `notification.py`, `pricing.py`).
+
+### Revisions In `02-Applied-OOD-Principles/REFACTORING_PLAN.md`
+
+Additionally, the plan status was changed from *proposed* to *reviewed and
+awaiting user approval*, a violation-to-correction mapping table was added,
+an abstraction-simplification section was added, a file-ownership table was
+added, and the acceptance criteria now include the requirement that no cash
+logic exists in the applied folder before Phase 3.
