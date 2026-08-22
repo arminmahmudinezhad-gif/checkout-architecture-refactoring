@@ -316,6 +316,11 @@ reviewed it against the five SOLID violations from Step 2 and refined it in
 the same file. The user approved the implementation scope in chat before A8
 began.
 
+The refactoring plan was produced with OpenCode in **Plan mode**. In this mode,
+OpenCode analyzed the scope, affected files, implementation order, risks, and
+verification commands without modifying application code. Soroush then
+reviewed and corrected the generated plan before implementation.
+
 ### Accepted Plan Suggestions
 
 - The five-phase structure was kept because it maps one-to-one onto the
@@ -369,6 +374,10 @@ logic exists in the applied folder before Phase 3.
 The applied version was created from the pre-cash tree at commit `6908c62`, so
 cash could be introduced later as a separate, measurable extension. The two
 versions remain independently runnable and do not import from each other.
+
+After the reviewed plan received explicit user approval, OpenCode was switched
+to **Build mode**. The approved refactoring was applied incrementally through
+A8 and S8, with the tests and application executed after each phase.
 
 ### Resulting Design
 

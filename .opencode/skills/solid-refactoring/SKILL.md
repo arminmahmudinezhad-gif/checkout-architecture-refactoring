@@ -91,6 +91,16 @@ Follow the table with one evidence section per violation. Separate confirmed
 violations from uncertain design concerns, and state any assumptions or test
 gaps that limit the analysis.
 
+## OpenCode Modes
+
+Use **Plan mode** to analyze violations, propose the refactoring sequence,
+identify affected files, and define verification without editing application
+code. Present that plan for review and explicit user approval.
+
+Switch to **Build mode** only after approval. Apply the reviewed plan in small
+steps, preserve unrelated work, and run the agreed verification after each
+step.
+
 ## Refactoring Workflow
 
 Apply the refactoring only after the analysis has been presented and the user
