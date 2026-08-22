@@ -78,20 +78,28 @@ this list.
 - [x] S7 `docs(plan): review and refine refactoring plan`
 - [x] S8 `refactor: migrate implementations and decouple dependencies`
 - [x] S9 `test(applied): add cash and regression test coverage`
-- [ ] S10 `docs: evaluate OpenCode and finalize experiment report`
+- [x] S10 `docs: evaluate OpenCode and finalize experiment report`
 
-## Current Handoff
+Both contributors have now authored exactly 10 meaningful commits: Armin
+(A1-A10) and Soroush (S1-S10).
 
-Armin A10 completes the implementation comparison in `README.md` and updates
-this progress record. After A10 is committed and pushed, Soroush must
-fast-forward `soroush/work` from `origin/armin/work` and perform S10. S10 edits
-only `README.md` and `AGENTS.md`: evaluate OpenCode, document the Skill's impact
-and corrected AI output, review the report against the assignment order, and
-run both versions' tests and demos. Before committing, run `git diff --check`
-and confirm only those two files changed. Use commit message
-`docs: evaluate OpenCode and finalize experiment report`, push
-`soroush/work`, then have Armin fast-forward from `origin/soroush/work`. S10 is
-the final planned meaningful commit.
+## Project Status: Complete
+
+The experiment is finished. The initial version in
+`01-Without-OOD-Principles` and the refactored version in
+`02-Applied-OOD-Principles` are both runnable in isolation, and the complete
+report, measurements, and OpenCode evaluation live in the root `README.md`.
+
+The final handoff step is to keep both branches synchronized:
+
+- `git merge --ff-only origin/armin/work` on `soroush/work`
+- `git merge --ff-only origin/soroush/work` on `armin/work`
+
+Use fast-forward merges only; do not create merge commits for branch
+handoffs. Confirm equality with `git rev-parse origin/armin/work
+origin/soroush/work` after the last synchronization.
+
+No further meaningful commits are planned.
 
 ## Working Expectations
 

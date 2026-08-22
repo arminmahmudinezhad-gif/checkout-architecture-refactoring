@@ -458,3 +458,148 @@ python -m store.main
 The initial version passes 7 tests. The applied version passes 14 tests. Both
 demos complete credit-card, bundle, and cash checkout scenarios. S10 performs
 the final independent verification after completing the OpenCode evaluation.
+
+## Step 8: Evaluate OpenCode and Finalize the Experiment
+
+This section records what OpenCode contributed, where its output had to be
+corrected or rejected, the Skill's impact on the process, the prompts that
+governed the work, possible process improvements, and the experiment's
+conclusion. Everything below is supported by the repository history and the
+recorded work in Steps 1-7.
+
+### Correct OpenCode Contributions
+
+- **Correctly detected all five SOLID violations with concrete file and symbol
+  evidence.** The analysis in Step 2 identifies `order_service.py:OrderService`
+  (SRP, DIP), `payment.py:PaymentProcessor.process` and
+  `pricing.py:DiscountCalculator.calculate` (OCP), and
+  `notification.py:SmsOnlyNotifier` / `NotificationService` (LSP, ISP), each
+  with a stated maintenance or substitution risk.
+- **Preserved the intentionally flawed initial version.**
+  `01-Without-OOD-Principles` was treated as immutable, and every later change
+  was directed at the applied version only.
+- **Kept cash absent from the applied version until A9.** The refactoring
+  phases and the S8 scope explicitly excluded cash, so the applied extension
+  was measured separately from the refactoring itself.
+- **Proposed payment handlers and registry dispatch.** Armin's A8 extracted
+  credit-card, PayPal, and Bitcoin handlers behind a `PaymentHandler` contract
+  and replaced the `if`/`elif` chain with registry dispatch.
+- **Proposed constructor injection and composition-root wiring.** Soroush's S8
+  moved concrete construction into `store/main.py`, so `OrderService` controls
+  only injected collaborators.
+- **Added characterization, unit, integration, and regression coverage.** The
+  initial and applied versions each gained pre-cash characterization tests,
+  cash unit tests, cash integration tests, and checkout regression tests.
+- **Used Git ranges to make measurements reproducible.** The comparisons in
+  Step 7 run `git diff --numstat` over explicit commit ranges rather than
+  relying on recalled line counts.
+
+### Corrected or Rejected Suggestions
+
+- **Corrected the proposed applied baseline from the current cash-modified
+  folder to commit `6908c62`.** The initial plan said "copy the pre-cash source
+  state"; S7 redefined Phase 0 to copy the git tree at `6908c62`, where no
+  `cash` branch and no cash order exist, instead of the already-modified
+  `01-Without-OOD-Principles`.
+- **Rejected an unnecessary receipt protocol.** Only one receipt printer exists
+  and it has one public method, so a dedicated contract would have been an
+  abstraction without a consumer.
+- **Rejected an unused push notifier.** The checkout flow never sends push;
+  implementing `PushNotifier` would have reproduced the unused operations that
+  caused the original ISP violation.
+- **Rejected separate directories for every handler and rule.** Handlers,
+  notifiers, and discount rules stayed in the modules they belong to
+  (`payment.py`, `notification.py`, `pricing.py`) instead of per-concept
+  folders.
+- **Corrected unclear A8/S8 file ownership.** The original plan did not state
+  which files belong to which phase; S7 added a per-owner file table so the two
+  contributors never edit the same files in the same phase window.
+- **Resolved the A8 wiring conflict by temporarily allowing default payment
+  handlers, leaving complete composition-root injection for S8.** A8 introduced
+  the payment extension point while `OrderService` still constructed its
+  collaborators and `main.py` still called `OrderService()` with no arguments.
+  `PaymentProcessor` kept a default handler tuple so the existing workflow kept
+  working; S8 then completed constructor injection and composition-root wiring.
+- **Corrected the claim that SRP was completely solved.** `OrderService` still
+  owns the use-case calculations, the paid-status transition, and message
+  construction; Step 5 records SRP as "Improved", not fully resolved.
+- **Clarified the initial test line count.** The 133 added test lines in
+  `01-Without-OOD-Principles` were not all cash-specific: 70 characterize the
+  pre-existing payment methods and 63 directly test cash.
+- **Clarified interpreter wording.** Final verification in the target Windows
+  environment uses `python`, even though the S7 plan review recorded `python3`;
+  the verification commands in this report use `python`.
+
+### Skill Impact
+
+The Skill at `.opencode/skills/solid-refactoring/SKILL.md` shaped the workflow
+in measurable ways:
+
+- **Required evidence before recommendations.** No finding was reported
+  without a concrete file, symbol, confidence level, and realistic change that
+  exposes the design cost.
+- **Prevented edits before explicit approval.** Analysis and refactoring were
+  separate phases, and each implementation step had to pass a user-approval
+  gate before editing.
+- **Encouraged incremental, behavior-preserving changes.** Refactoring ran in
+  small steps with tests after each group, preserving observable checkout
+  behavior.
+- **Prevented unrelated refactoring.** The Skill explicitly prohibits
+  combining unrelated refactorings into the same change set.
+- **Required tests after each implementation phase.** Every phase of the plan
+  ran the applied test suite before the next phase began.
+- **Made rejected suggestions and plan corrections visible.** Accepted,
+  corrected, and rejected suggestions are recorded in Steps 1, 4, and 8 rather
+  than being silently dropped.
+
+**Human review was still necessary.** The corrections above (baseline commit,
+A8/S8 ownership, SRP overstatement, test-line breakdown, interpreter wording)
+were caught by manual review of the plan and the report, not by the Skill
+itself. The Skill improves discipline but does not replace a factual review.
+
+### Important Prompts
+
+The prompts below were actually issued during the project. The constraints they
+carried are what made each step reproducible:
+
+- **"Do not refactor `01-Without-OOD-Principles`."** Kept the intentionally
+  flawed design intact as the experiment's baseline.
+- **"Add cash to the initial conditional design."** Directed the cash branch
+  into the existing `if`/`elif` chain of the initial version, without
+  refactoring it.
+- **"Review all five SOLID principles with evidence."** Required every finding
+  to cite a file, a symbol, and a concrete risk.
+- **"Do not edit until the reviewed plan is approved."** Separated analysis
+  and planning from implementation and required an explicit approval gate.
+- **"Keep cash absent from the applied version until A9."** Kept the
+  refactoring and the extension as separate, measurable changes.
+- **"Modify only the two A9 production files."** Scoped the applied cash
+  extension to `store/payment.py` and `store/main.py`.
+
+### Possible Process Improvements
+
+- **Record important prompts immediately** rather than reconstructing them
+  later; prompt intent is lost as sessions age.
+- **Add an automated check for allowed files in each phase** so scope
+  violations are caught by the toolchain instead of manual review.
+- **Validate plan ownership against actual dependency requirements before
+  implementation;** the A8/S8 ownership split needed a correction after review.
+- **Use one documented Python launcher per environment** so verification
+  commands never depend on whether `python` or `python3` is registered.
+- **Automate Git range measurements** so change-effort numbers are regenerated
+  by script rather than recomputed by hand.
+- **Run a final factual review** to catch overclaimed SOLID corrections such
+  as the SRP wording corrected above.
+
+### Conclusion
+
+SOLID did not necessarily reduce raw production line count: the applied cash
+extension added a complete handler class (more lines than the initial
+conditional branch), and the refactoring added contracts, rules, and wiring.
+Its value was a reduction in modification risk. When cash was added to the
+applied version, payment dispatch, all three existing handlers, and
+`OrderService` remained unchanged; only a new handler and its composition-root
+registration were added. The initial design, by contrast, required editing the
+stable payment-dispatch conditional for every new method. The experiment
+therefore shows that SOLID improved extensibility and regression safety rather
+than raw size.
