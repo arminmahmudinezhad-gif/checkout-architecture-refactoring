@@ -34,8 +34,10 @@ The assignment PDF is authoritative when it is available to the session.
 - Before any work, inspect `git status`, the recent log, and both remote
   branches. Git history is the source of truth if this checklist is stale.
 - Preserve other contributors' work and authorship.
-- After every Armin task, state Soroush's exact next task, files, verification,
-  commit message, and synchronization point.
+- Original experiment handoffs recorded the next contributor's exact task,
+  files, verification, commit message, and synchronization point. An approved
+  post-experiment correction may stay with one contributor and uses the shared
+  Plan review; the other contributor does not need to repeat Plan mode.
 
 ## Immutable Initial Version
 

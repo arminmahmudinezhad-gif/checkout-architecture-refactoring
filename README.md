@@ -464,9 +464,11 @@ python -m unittest discover -s tests -v
 python -m store.main
 ```
 
-The initial version passes 7 tests. The applied version passes 14 tests. Both
-demos complete credit-card, bundle, and cash checkout scenarios. S10 performs
-the final independent verification after completing the OpenCode evaluation.
+At the A10/S10 experiment snapshot, the initial version passed 7 tests and the
+applied version passed 14 tests. Both demos completed credit-card, bundle, and
+cash checkout scenarios. S10 performed the final independent verification
+after completing the OpenCode evaluation. Later post-experiment tests are
+reported separately below and do not change this historical snapshot.
 
 ## Step 8: Evaluate OpenCode and Finalize the Experiment
 
@@ -529,6 +531,8 @@ recorded work in Steps 1-7.
   collaborators and `main.py` still called `OrderService()` with no arguments.
   `PaymentProcessor` kept a default handler tuple so the existing workflow kept
   working; S8 then completed constructor injection and composition-root wiring.
+  The post-experiment review later removed this fallback after finding that it
+  omitted cash and diverged from the composition root.
 - **Corrected the claim that SRP was completely solved.** `OrderService` still
   owns the use-case calculations, the paid-status transition, and message
   construction; Step 5 records SRP as "Improved", not fully resolved.
@@ -601,13 +605,28 @@ carried are what made each step reproducible:
 
 ### Post-Experiment OpenCode Mode Compliance Review
 
-This post-experiment documentation correction explicitly selected the real
-Plan agent, which used the project Skill, remained read-only, compared the
-plan with the implementation, and produced accepted, corrected, and rejected
-findings. Human review accepted the verified documentation corrections while
-refining the SRP wording. The real Build agent then applied only this approved
-documentation scope. These follow-up documentation changes are excluded from
-the experiment metrics and do not alter their ranges or values.
+This post-experiment review explicitly selected the real Plan agent, which used
+the project Skill, remained read-only, compared the plan with the implementation,
+and produced accepted, corrected, and rejected findings. Human review refined
+the SRP wording and approved only verified corrections. The real Build agent
+then applied each approved scope separately.
+
+- Documentation corrections removed unsupported historical mode claims, fixed
+  the plan status, test provenance, interpreter wording, and baseline hash, and
+  recorded the review without changing the experiment measurements.
+- The Plan agent identified inconsistent payment configuration: the implicit
+  `PaymentProcessor()` defaults omitted cash while `build_payment_processor()`
+  registered it. Build removed the implicit defaults, made handler registration
+  mandatory, and routed built-in processor tests through the composition root.
+- Build added the recommended regression coverage for discount precedence and
+  rounding, validation boundaries, notification suppression, and the demo's
+  bundle checkout path.
+
+Current post-experiment verification passes 7 tests in the initial version and
+25 tests in the applied version, and both demos complete successfully. The
+historical A10/S10 snapshot remains 7 and 14 tests. These follow-up changes are
+excluded from the original experiment metrics and do not alter their ranges or
+values.
 
 ### Conclusion
 
