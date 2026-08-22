@@ -296,11 +296,25 @@ python -m store.main
 All seven tests pass, and the demo completes the credit-card, bundle, and cash
 checkout scenarios.
 
-## Step 3: Refactoring Plan Review (S7)
+## Step 3: Create the OpenCode SOLID Refactoring Skill
+
+The project-scoped Skill is stored at
+`.opencode/skills/solid-refactoring/SKILL.md`. Armin's A6 added detection checks
+for all five principles, evidence requirements, confidence levels, and a
+structured findings format. Soroush's S6 added incremental refactoring guidance,
+explicit user-approval gates, rejection handling, verification steps, and a
+rule against unrelated refactoring.
+
+The Skill separates analysis from implementation: it first reports concrete
+violations and risks, then proposes scoped changes, and edits only after the
+user approves the reviewed plan.
+
+## Step 4: Refactoring Plan Review (S7)
 
 Armin's A7 proposed `02-Applied-OOD-Principles/REFACTORING_PLAN.md`. Soroush
 reviewed it against the five SOLID violations from Step 2 and refined it in
-the same file. The plan remains a proposal until the user approves it.
+the same file. The user approved the implementation scope in chat before A8
+began.
 
 ### Accepted Plan Suggestions
 
@@ -349,3 +363,98 @@ awaiting user approval*, a violation-to-correction mapping table was added,
 an abstraction-simplification section was added, a file-ownership table was
 added, and the acceptance criteria now include the requirement that no cash
 logic exists in the applied folder before Phase 3.
+
+## Step 5: Apply the Reviewed SOLID Refactoring
+
+The applied version was created from the pre-cash tree at commit `6908c62`, so
+cash could be introduced later as a separate, measurable extension. The two
+versions remain independently runnable and do not import from each other.
+
+### Resulting Design
+
+| Principle | Applied correction | Evidence in `02-Applied-OOD-Principles` |
+| --- | --- | --- |
+| SRP | Improved: validation, discounts, payment, persistence, notification delivery, and receipt output are delegated. `OrderService` retains use-case calculations, status transition, and message construction. | `store/order_service.py`, `store/validation.py`, `store/receipt.py` |
+| OCP | Payment methods use registered handlers, and discounts use an ordered collection of rule objects. | `store/payment.py`, `store/pricing.py` |
+| LSP | The invalid `SmsOnlyNotifier` subtype was removed; each notifier implements its complete contract. | `store/notification.py` |
+| ISP | Email and SMS implementations expose only the shared `send` operation used by checkout. | `store/contracts.py`, `store/notification.py` |
+| DIP | `OrderService` receives its collaborators through constructor injection; concrete construction is in the composition root. | `store/order_service.py`, `store/main.py` |
+
+Armin's A8 introduced the payment extension point and migrated credit card,
+PayPal, and Bitcoin without adding cash. Soroush's S8 then migrated the other
+responsibilities and moved concrete dependency wiring to `store/main.py`.
+
+## Step 6: Add Cash to the Refactored Design
+
+Cash was added only after the refactoring was complete. The extension added a
+`CashPaymentHandler`, registered it in the composition root, and added a cash
+order to the demonstration flow. It did not modify `PaymentProcessor`, any
+existing payment handler, or `OrderService`.
+
+### Applied-Version Change Inventory
+
+| Row | Class or file | Change type | Change description |
+| ---: | --- | --- | --- |
+| 1 | `store/payment.py` (`CashPaymentHandler`) | Class added | Encapsulated the cash console message and `paid_by_cash` receipt token in a new handler. |
+| 2 | `store/main.py` (`build_payment_processor`) | Registration added | Registered `CashPaymentHandler` alongside the existing handlers. |
+| 3 | `store/main.py` (`build_demo_orders`, `main`) | Demo data and flow changed | Added and processed the same realistic cash scenario used in the initial version. |
+| 4 | `tests/test_cash_checkout.py` | Test file added | Added focused handler checks and checkout integration coverage without changing production code. |
+
+Paths in this section are relative to `02-Applied-OOD-Principles`.
+
+## Step 7: Compare Initial and Refactored Extensions
+
+### Reproducible Measurements
+
+The initial-version range starts at the preserved pre-cash snapshot and ends
+after its cash production and test work. The applied-version range starts after
+the reviewed refactoring and ends after cash tests:
+
+```powershell
+git diff --numstat bf7a03b..ca2e90e -- 01-Without-OOD-Principles
+git diff --numstat 1ff96dc..231e2e0 -- 02-Applied-OOD-Principles
+```
+
+| Version and scope | Files changed | Lines added | Lines removed |
+| --- | ---: | ---: | ---: |
+| Initial production | 2 | 15 | 2 |
+| Initial tests | 3 | 133 | 0 |
+| Initial total | 5 | 148 | 2 |
+| Applied production | 2 | 22 | 3 |
+| Applied tests | 1 | 65 | 0 |
+| Applied total | 3 | 87 | 3 |
+
+The applied production change has more added lines because a complete handler
+class makes the behavior explicit, while the initial version added a smaller
+conditional branch. Raw line count therefore does not by itself show design
+quality. The important change-effort difference is where those lines went.
+
+### Change-Effort Comparison
+
+| Question | Initial design | Applied SOLID design |
+| --- | --- | --- |
+| Was central payment dispatch modified? | Yes; `PaymentProcessor.process` gained another `elif` branch. | No; registry dispatch was unchanged. |
+| Were existing payment implementations modified? | Payment variants were branches in the modified processor. | No; all three existing handler classes were unchanged. |
+| Was checkout orchestration modified? | No. | No. |
+| Where was the new behavior implemented? | Inside an existing conditional chain. | In one new `CashPaymentHandler`. |
+| How was the method enabled? | By changing the processor's method-selection logic. | By registering the new handler in the composition root. |
+| Test changes in the measured range | Three files and 133 lines: 70 characterize pre-existing methods and 63 directly test cash. | One new 65-line cash test file because pre-cash regression coverage already existed. |
+
+The initial version required changing stable dispatch logic, so every future
+payment method would increase the same conditional chain and its regression
+risk. The applied version still required explicit registration, but the new
+behavior was additive: extension code and composition changed while stable
+dispatch and checkout policy remained closed to modification.
+
+### A10 Verification Snapshot
+
+From each version directory, the following commands were run:
+
+```powershell
+python -m unittest discover -s tests -v
+python -m store.main
+```
+
+The initial version passes 7 tests. The applied version passes 14 tests. Both
+demos complete credit-card, bundle, and cash checkout scenarios. S10 performs
+the final independent verification after completing the OpenCode evaluation.

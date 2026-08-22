@@ -63,9 +63,9 @@ this list.
 - [x] A5 `docs: analyze SRP OCP and DIP violations`
 - [x] A6 `feat(skill): add SOLID detection and evidence workflow`
 - [x] A7 `docs(plan): propose SOLID refactoring plan`
-- [ ] A8 `refactor: introduce payment abstractions`
-- [ ] A9 `feat(applied): implement cash payment extension`
-- [ ] A10 `docs: compare initial and refactored implementations`
+- [x] A8 `refactor: introduce payment abstractions`
+- [x] A9 `feat(applied): implement cash payment extension`
+- [x] A10 `docs: compare initial and refactored implementations`
 
 ### Soroush
 
@@ -75,19 +75,23 @@ this list.
 - [x] S4 `docs: justify initial changes and record prompts`
 - [x] S5 `docs: analyze LSP ISP and architecture dependencies`
 - [x] S6 `feat(skill): add refactoring and user approval workflow`
-- [ ] S7 `docs(plan): review and refine refactoring plan`
-- [ ] S8 `refactor: migrate implementations and decouple dependencies`
-- [ ] S9 `test(applied): add cash and regression test coverage`
+- [x] S7 `docs(plan): review and refine refactoring plan`
+- [x] S8 `refactor: migrate implementations and decouple dependencies`
+- [x] S9 `test(applied): add cash and regression test coverage`
 - [ ] S10 `docs: evaluate OpenCode and finalize experiment report`
 
 ## Current Handoff
 
-Soroush S6 is complete. Armin A7 prepares
-`02-Applied-OOD-Principles/REFACTORING_PLAN.md` and introduces this
-`AGENTS.md`; both files belong to the same A7 commit. After A7 is committed and
-pushed, Soroush must perform S7 by reviewing and refining the proposed plan and
-documenting the reasons for each correction. Do not apply the refactoring until
-S7 is complete and approved.
+Armin A10 completes the implementation comparison in `README.md` and updates
+this progress record. After A10 is committed and pushed, Soroush must
+fast-forward `soroush/work` from `origin/armin/work` and perform S10. S10 edits
+only `README.md` and `AGENTS.md`: evaluate OpenCode, document the Skill's impact
+and corrected AI output, review the report against the assignment order, and
+run both versions' tests and demos. Before committing, run `git diff --check`
+and confirm only those two files changed. Use commit message
+`docs: evaluate OpenCode and finalize experiment report`, push
+`soroush/work`, then have Armin fast-forward from `origin/soroush/work`. S10 is
+the final planned meaningful commit.
 
 ## Working Expectations
 
