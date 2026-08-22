@@ -1,6 +1,6 @@
 ---
 name: solid-refactoring
-description: SOLID violation analysis and evidence collection. Use when reviewing object-oriented code for SRP, OCP, LSP, ISP, or DIP before planning a refactor.
+description: SOLID violation analysis, evidence collection, and step-by-step refactoring with user approval gates. Use when reviewing object-oriented code for SRP, OCP, LSP, ISP, or DIP, or when planning or applying a refactor to address those violations.
 ---
 
 # SOLID Refactoring
@@ -90,3 +90,40 @@ Start with this summary table:
 Follow the table with one evidence section per violation. Separate confirmed
 violations from uncertain design concerns, and state any assumptions or test
 gaps that limit the analysis.
+
+## Refactoring Workflow
+
+Apply the refactoring only after the analysis has been presented and the user
+has approved proceeding. Work in small, behavior-preserving steps:
+
+1. Inspect the current tests that cover the code being changed before editing
+   anything. Run the existing test command to establish a green baseline.
+2. Prefer the smallest change that addresses the reported violation. Create the
+   abstraction or collaborators called for in the analysis, then rewire the
+   consumers with constructor or method-level injection.
+3. Move one dependency or responsibility at a time. After each move, run the
+   test suite and fix regressions before continuing.
+4. Verify the solution by re-running the relevant tests and the application
+   entry point when one exists.
+5. Do not interrupt the refactor to address a new principle; record it as a
+   follow-up and finish the current step first.
+
+Do not combine unrelated refactorings into the same change set.
+
+## User Approval Workflow
+
+Every refactor passes through explicit user approval gates. Before making any
+change, confirm the step using the question tool and wait for the user's
+response before continuing:
+
+1. Confirm the refactoring plan (scope, order of steps, affected files) and any
+   commits that will be produced, including commit messages.
+2. Before editing a file, confirm the specific change if more than one
+   reasonable approach exists.
+3. Before running tests or the application, confirm the verification command
+   when a choice is available.
+4. Before committing or pushing, confirm the commit was requested and review
+   the exact staging command.
+
+Never skip a gate, assume approval, or continue past a rejected step. When the
+user rejects a suggestion, record the correction and adapt the plan.
