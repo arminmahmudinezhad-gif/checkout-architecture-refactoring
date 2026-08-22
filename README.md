@@ -131,6 +131,86 @@ The unit test proves the branch; the integration test proves the flow.
   principles during Step 1 — explicitly deferred to the later steps of the
   case study.
 
+## Step 2: SOLID Design Analysis
+
+The initial implementation was reviewed before any architectural refactoring.
+This section records the observed violations, their locations, and the proposed
+corrections.
+
+### SOLID Assessment
+
+| Principle | Respected? | Location | Summary |
+| --- | --- | --- | --- |
+| SRP | No | `store/order_service.py`, `OrderService` | The service validates orders, calculates totals and shipping, processes payment, persists data, sends notifications, and prints receipts. |
+| OCP | No | `store/payment.py`, `PaymentProcessor.process`; `store/pricing.py`, `DiscountCalculator.calculate` | Adding a payment method or discount rule requires modifying an existing conditional chain. |
+| DIP | No | `store/order_service.py`, `OrderService.__init__` | The high-level checkout workflow constructs and depends directly on concrete payment, notification, pricing, and database classes. |
+
+Paths in this analysis are relative to `01-Without-OOD-Principles`.
+
+### SRP: Single Responsibility Principle
+
+**Violation location:** `store/order_service.py`, particularly
+`OrderService.process_order` and `_print_receipt`.
+
+**Cause of violation:** `OrderService` has several independent reasons to
+change. It contains order validation rules, shipping and total calculation,
+payment orchestration, persistence, notification-channel selection, and receipt
+formatting. A change to receipt presentation or storage technology therefore
+requires editing the same class that controls the checkout use case.
+
+**Proposed refactoring:** Keep `OrderService` as the checkout orchestrator, but
+move validation, total calculation, receipt formatting, persistence, and
+notification behavior behind focused collaborators. The service should
+coordinate these operations instead of implementing them directly.
+
+**Reason for this approach:** The workflow remains visible in one application
+service, while each implementation detail gets a separate reason to change.
+This reduces the risk that a presentation or infrastructure change alters the
+checkout policy.
+
+### OCP: Open/Closed Principle
+
+**Violation locations:**
+
+- `store/payment.py`, where `PaymentProcessor.process` selects payment behavior
+  through an `if`/`elif` chain.
+- `store/pricing.py`, where `DiscountCalculator.calculate` selects discount
+  rules through another conditional chain.
+
+**Cause of violation:** Every new payment method requires another branch in
+`PaymentProcessor`. Adding cash demonstrated this directly: the existing class
+had to be edited before a cash order could be processed. Discount rules have the
+same problem because every new rule changes `DiscountCalculator`.
+
+**Proposed refactoring:** Represent payment methods and discount rules as
+separate implementations of stable abstractions. Select payment handlers by
+method name and evaluate injected discount policies without modifying the
+checkout workflow.
+
+**Reason for this approach:** New behavior can be introduced by adding a new
+implementation and registering or injecting it. Existing, tested implementations
+remain closed to modification, while the system remains open to extension.
+
+### DIP: Dependency Inversion Principle
+
+**Violation location:** `store/order_service.py`, particularly
+`OrderService.__init__`.
+
+**Cause of violation:** The high-level checkout policy directly imports and
+constructs `DiscountCalculator`, `PaymentProcessor`, `NotificationService`, and
+`MySqlDatabase`. It therefore depends on concrete implementation details and
+cannot replace them without editing `OrderService`.
+
+**Proposed refactoring:** Define small abstractions for pricing, payment,
+persistence, notification, and receipt output. Supply their implementations to
+`OrderService` through constructor injection. Create concrete dependencies only
+in the application composition root.
+
+**Reason for this approach:** The checkout workflow will depend on contracts
+rather than infrastructure details. Constructor injection also makes behavior
+replaceable and allows tests to use controlled collaborators without patching
+internals.
+
 ### Verification
 
 Run the initial version and its tests from the repository root:
