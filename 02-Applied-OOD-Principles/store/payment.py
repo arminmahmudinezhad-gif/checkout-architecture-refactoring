@@ -40,13 +40,7 @@ class CashPaymentHandler:
 
 
 class PaymentProcessor:
-    def __init__(self, handlers: Iterable[PaymentHandler] | None = None):
-        if handlers is None:
-            handlers = (
-                CreditCardPaymentHandler(),
-                PayPalPaymentHandler(),
-                BitcoinPaymentHandler(),
-            )
+    def __init__(self, handlers: Iterable[PaymentHandler]):
         self._handlers = {handler.method: handler for handler in handlers}
 
     def process(self, order: Order, amount: float) -> str:

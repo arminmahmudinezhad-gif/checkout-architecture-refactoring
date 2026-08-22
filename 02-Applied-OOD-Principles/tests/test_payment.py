@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch
 
+from store.main import build_payment_processor
 from store.models import Customer, Order
 from store.payment import PaymentProcessor
 
@@ -21,7 +22,7 @@ class ExistingPaymentMethodTests(unittest.TestCase):
             id=1, customer=self.customer, payment_method="credit_card"
         )
 
-        receipt = PaymentProcessor().process(order, 99.99)
+        receipt = build_payment_processor().process(order, 99.99)
 
         self.assertEqual(receipt, "paid_by_credit_card:99.99")
         mock_print.assert_called_once_with(
@@ -32,7 +33,7 @@ class ExistingPaymentMethodTests(unittest.TestCase):
     def test_process_paypal_payment(self, mock_print):
         order = Order(id=1, customer=self.customer, payment_method="paypal")
 
-        receipt = PaymentProcessor().process(order, 25.0)
+        receipt = build_payment_processor().process(order, 25.0)
 
         self.assertEqual(receipt, "paid_by_paypal:25.00")
         mock_print.assert_called_once_with(
@@ -43,18 +44,27 @@ class ExistingPaymentMethodTests(unittest.TestCase):
     def test_process_bitcoin_payment(self, mock_print):
         order = Order(id=1, customer=self.customer, payment_method="bitcoin")
 
-        receipt = PaymentProcessor().process(order, 0.5)
+        receipt = build_payment_processor().process(order, 0.5)
 
         self.assertEqual(receipt, "paid_by_bitcoin:0.50")
         mock_print.assert_called_once_with(
             "[payment] Charging BTC 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa 0.50"
         )
 
+    @patch("builtins.print")
+    def test_process_cash_payment(self, mock_print):
+        order = Order(id=1, customer=self.customer, payment_method="cash")
+
+        receipt = build_payment_processor().process(order, 20.0)
+
+        self.assertEqual(receipt, "paid_by_cash:20.00")
+        mock_print.assert_called_once_with("[payment] Accepting cash 20.00")
+
     def test_process_unknown_payment_raises(self):
         order = Order(id=1, customer=self.customer, payment_method="unknown")
 
         with self.assertRaises(ValueError) as ctx:
-            PaymentProcessor().process(order, 10.0)
+            build_payment_processor().process(order, 10.0)
 
         self.assertEqual(str(ctx.exception), "Unknown payment method: 'unknown'")
 
