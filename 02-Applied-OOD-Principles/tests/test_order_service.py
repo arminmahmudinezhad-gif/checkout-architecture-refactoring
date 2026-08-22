@@ -2,7 +2,42 @@ import unittest
 from unittest.mock import patch
 
 from store.models import Customer, Order, OrderItem
+from store.notification import EmailNotifier, SmsNotifier
 from store.order_service import OrderService
+from store.payment import (
+    BitcoinPaymentHandler,
+    CreditCardPaymentHandler,
+    PayPalPaymentHandler,
+    PaymentProcessor,
+)
+from store.pricing import (
+    BulkDiscountRule,
+    DiscountCalculator,
+    VipDiscountRule,
+    WelcomeCouponDiscountRule,
+)
+from store.receipt import ReceiptPrinter
+from store.storage import MySqlDatabase
+from store.validation import OrderValidator
+
+
+def build_service() -> OrderService:
+    return OrderService(
+        payment_processor=PaymentProcessor(
+            (
+                CreditCardPaymentHandler(),
+                PayPalPaymentHandler(),
+                BitcoinPaymentHandler(),
+            )
+        ),
+        notifiers=(EmailNotifier(), SmsNotifier()),
+        discount_calculator=DiscountCalculator(
+            (VipDiscountRule(), BulkDiscountRule(), WelcomeCouponDiscountRule())
+        ),
+        database=MySqlDatabase(),
+        validator=OrderValidator(),
+        receipt_printer=ReceiptPrinter(),
+    )
 
 
 class ExistingCheckoutTests(unittest.TestCase):
@@ -22,7 +57,7 @@ class ExistingCheckoutTests(unittest.TestCase):
             items=[OrderItem(1, "Notebook", 20.0, 1)],
         )
 
-        service = OrderService()
+        service = build_service()
         processed = service.process_order(order)
 
         output = "\n".join(call.args[0] for call in mock_print.call_args_list)
