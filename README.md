@@ -119,8 +119,8 @@ The unit test proves the branch; the integration test proves the flow.
 
 **Corrected**
 
-- The prompted `python -m unittest ...` command was corrected to `python3 -m
-  unittest ...` because `python` is not resolvable on PATH in this environment.
+- The documented verification commands consistently retain `python -m unittest
+  ...`; no environment-specific `python3` correction is claimed.
 - The initial integration-test drafts overlapped with Armin's `PaymentProcessor`
   unit test; they were reworked to drive `OrderService` end to end and assert on
   status and receipt output instead.
@@ -313,13 +313,13 @@ user approves the reviewed plan.
 
 Armin's A7 proposed `02-Applied-OOD-Principles/REFACTORING_PLAN.md`. Soroush
 reviewed it against the five SOLID violations from Step 2 and refined it in
-the same file. The user approved the implementation scope in chat before A8
-began.
+the same file. The repository records the reviewed plan and its implementation
+in A8/S8; it does not establish a separate historical approval interaction.
 
-The refactoring plan was produced with OpenCode in **Plan mode**. In this mode,
-OpenCode analyzed the scope, affected files, implementation order, risks, and
-verification commands without modifying application code. Soroush then
-reviewed and corrected the generated plan before implementation.
+The plan documents the scope, affected files, implementation order, risks, and
+verification commands, and Soroush reviewed and corrected it before
+implementation. The repository does not establish that A7/S7 used an
+explicitly selected OpenCode Plan agent.
 
 ### Accepted Plan Suggestions
 
@@ -346,8 +346,8 @@ reviewed and corrected the generated plan before implementation.
 - A8/S8 file ownership was not explicit enough to prevent overlapping edits;
   a phase-by-owner file table was added so Armin and Soroush never edit the
   same files in the same phase window.
-- The verification commands were noted to use `python3` in this environment
-  while the original plan wrote `python`.
+- The verification commands consistently retain the tested `python` commands;
+  no environment-specific `python3` requirement applies.
 
 ### Rejected Plan Suggestions
 
@@ -363,11 +363,11 @@ reviewed and corrected the generated plan before implementation.
 
 ### Revisions In `02-Applied-OOD-Principles/REFACTORING_PLAN.md`
 
-Additionally, the plan status was changed from *proposed* to *reviewed and
-awaiting user approval*, a violation-to-correction mapping table was added,
-an abstraction-simplification section was added, a file-ownership table was
-added, and the acceptance criteria now include the requirement that no cash
-logic exists in the applied folder before Phase 3.
+Additionally, the plan status was revised to record that Phases 0-4 were
+implemented and verified. A violation-to-correction mapping table, an
+abstraction-simplification section, and a file-ownership table were added, and
+the acceptance criteria include the requirement that no cash logic exists in
+the applied folder before Phase 3.
 
 ## Step 5: Apply the Reviewed SOLID Refactoring
 
@@ -375,9 +375,9 @@ The applied version was created from the pre-cash tree at commit `6908c62`, so
 cash could be introduced later as a separate, measurable extension. The two
 versions remain independently runnable and do not import from each other.
 
-After the reviewed plan received explicit user approval, OpenCode was switched
-to **Build mode**. The approved refactoring was applied incrementally through
-A8 and S8, with the tests and application executed after each phase.
+The reviewed refactoring was applied incrementally through A8 and S8, with the
+tests and application executed after each phase. The repository does not
+establish that A8/S8 used an explicitly selected OpenCode Build agent.
 
 ### Resulting Design
 
@@ -464,9 +464,11 @@ python -m unittest discover -s tests -v
 python -m store.main
 ```
 
-The initial version passes 7 tests. The applied version passes 14 tests. Both
-demos complete credit-card, bundle, and cash checkout scenarios. S10 performs
-the final independent verification after completing the OpenCode evaluation.
+At the A10/S10 experiment snapshot, the initial version passed 7 tests and the
+applied version passed 14 tests. Both demos completed credit-card, bundle, and
+cash checkout scenarios. S10 performed the final independent verification
+after completing the OpenCode evaluation. Later post-experiment tests are
+reported separately below and do not change this historical snapshot.
 
 ## Step 8: Evaluate OpenCode and Finalize the Experiment
 
@@ -529,6 +531,8 @@ recorded work in Steps 1-7.
   collaborators and `main.py` still called `OrderService()` with no arguments.
   `PaymentProcessor` kept a default handler tuple so the existing workflow kept
   working; S8 then completed constructor injection and composition-root wiring.
+  The post-experiment review later removed this fallback after finding that it
+  omitted cash and diverged from the composition root.
 - **Corrected the claim that SRP was completely solved.** `OrderService` still
   owns the use-case calculations, the paid-status transition, and message
   construction; Step 5 records SRP as "Improved", not fully resolved.
@@ -536,8 +540,8 @@ recorded work in Steps 1-7.
   `01-Without-OOD-Principles` were not all cash-specific: 70 characterize the
   pre-existing payment methods and 63 directly test cash.
 - **Clarified interpreter wording.** Final verification in the target Windows
-  environment uses `python`, even though the S7 plan review recorded `python3`;
-  the verification commands in this report use `python`.
+  environment uses `python`; the verification commands in this report retain
+  `python` consistently.
 
 ### Skill Impact
 
@@ -548,8 +552,8 @@ in measurable ways:
   without a concrete file, symbol, confidence level, and realistic change that
   exposes the design cost.
 - **Prevented edits before explicit approval.** Analysis and refactoring were
-  separate phases, and each implementation step had to pass a user-approval
-  gate before editing.
+  separate phases, and the documented workflow requires user approval before
+  editing.
 - **Encouraged incremental, behavior-preserving changes.** Refactoring ran in
   small steps with tests after each group, preserving observable checkout
   behavior.
@@ -578,8 +582,8 @@ carried are what made each step reproducible:
   refactoring it.
 - **"Review all five SOLID principles with evidence."** Required every finding
   to cite a file, a symbol, and a concrete risk.
-- **"Do not edit until the reviewed plan is approved."** Separated analysis
-  and planning from implementation and required an explicit approval gate.
+- **"Do not edit until the reviewed plan is approved."** Defined the intended
+  separation between analysis, planning, and implementation.
 - **"Keep cash absent from the applied version until A9."** Kept the
   refactoring and the extension as separate, measurable changes.
 - **"Modify only the two A9 production files."** Scoped the applied cash
@@ -593,12 +597,57 @@ carried are what made each step reproducible:
   violations are caught by the toolchain instead of manual review.
 - **Validate plan ownership against actual dependency requirements before
   implementation;** the A8/S8 ownership split needed a correction after review.
-- **Use one documented Python launcher per environment** so verification
-  commands never depend on whether `python` or `python3` is registered.
+- **Use the documented `python` launcher consistently** for verification.
 - **Automate Git range measurements** so change-effort numbers are regenerated
   by script rather than recomputed by hand.
 - **Run a final factual review** to catch overclaimed SOLID corrections such
   as the SRP wording corrected above.
+
+### Post-Experiment OpenCode Mode Compliance Review
+
+This post-experiment review explicitly selected the real Plan agent, which used
+the project Skill, remained read-only, compared the plan with the implementation,
+and produced accepted, corrected, and rejected findings. Human review refined
+the SRP wording and approved only verified corrections. The real Build agent
+then applied each approved scope separately.
+
+- Documentation corrections removed unsupported historical mode claims, fixed
+  the plan status, test provenance, interpreter wording, and baseline hash, and
+  recorded the review without changing the experiment measurements.
+- The Plan agent identified inconsistent payment configuration: the implicit
+  `PaymentProcessor()` defaults omitted cash while `build_payment_processor()`
+  registered it. Build removed the implicit defaults, made handler registration
+  mandatory, and routed built-in processor tests through the composition root.
+- Build added the recommended regression coverage for discount precedence and
+  rounding, validation boundaries, notification suppression, and the demo's
+  bundle checkout path.
+
+#### Agent Execution Log
+
+The Plan session ran in the OpenCode TUI after the Plan agent was explicitly
+selected. Each implementation session then ran the approved scope through the
+real Build agent with this CLI form:
+
+```powershell
+opencode.cmd run --agent build --auto --title "<session title>" "<approved scope>"
+```
+
+| Session | Mode and scope | Files changed | Verification and human review | Commit |
+| --- | --- | --- | --- | --- |
+| `SOLID refactoring compliance review` | Plan in TUI; load the Skill, inspect the completed applied design, classify recommendations, and make no edits | None | Reported accepted/corrected/rejected documentation findings, the divergent payment registries, and four regression-test gaps | No commit; read-only |
+| `Apply approved Plan review` | Build via CLI; apply only approved documentation corrections | `README.md`, `AGENTS.md`, `02-Applied-OOD-Principles/REFACTORING_PLAN.md` | `git diff --check` passed with line-ending warnings; 7 initial and 14 applied tests passed; both demos passed. Human review refined the SRP wording and removed one remaining approval overclaim. | `482e7c9` |
+| `Fix payment registration consistency` | Build via CLI; remove implicit `PaymentProcessor` defaults and use the composition root in built-in processor tests | `store/payment.py`, `tests/test_payment.py` in the applied version | 15 applied tests passed; the applied demo passed; `git diff --check` passed with line-ending warnings. Human review accepted the implementation without further code changes. | `2afda21` |
+| `Add applied regression coverage` | Build via CLI; add pricing, validation, notification-suppression, and bundle regression tests | `tests/test_order_service.py`, `tests/test_pricing.py`, `tests/test_validation.py` in the applied version | 25 applied tests passed; the applied demo passed; `git diff --check` passed with line-ending warnings. Human review removed private `_rules` access and changed the bundle test to use `build_demo_orders()`. | `a0523ab` |
+
+The final documentation pass recorded the current and historical counts in
+`7fc1195`. A final independent run then passed all 7 initial tests, all 25
+applied tests, both demos, and `git diff --check`.
+
+Current post-experiment verification passes 7 tests in the initial version and
+25 tests in the applied version, and both demos complete successfully. The
+historical A10/S10 snapshot remains 7 and 14 tests. These follow-up changes are
+excluded from the original experiment metrics and do not alter their ranges or
+values.
 
 ### Conclusion
 

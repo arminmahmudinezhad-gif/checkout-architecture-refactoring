@@ -1,7 +1,8 @@
 # SOLID Refactoring Plan
 
-Status: Reviewed by Soroush (S7) and revised; still awaiting user approval.
-Implementation must not start until the user approves this reviewed plan.
+Status: Phases 0-4 were implemented and verified.
+The reviewed plan was completed; this document records the implemented
+refactoring and verification scope.
 
 ## Goal
 
@@ -30,15 +31,15 @@ The applied version must remain independently runnable under
 - Do not introduce any `cash` branch or cash order in
   `02-Applied-OOD-Principles` before Phase 3 (Armin's A9).
 - Run the applied-version tests after every implementation phase.
-- Apply only the steps approved after the S7 review.
+- The approved steps were implemented through Phases 0-4.
 
 ## S7 Review: Violation-to-Correction Mapping
 
-Every documented SOLID violation maps to a explicit correction phase below.
+Every documented SOLID violation maps to an explicit correction phase below.
 
 | Principle and location | Current defect | Correction | Phase | Owner |
 | --- | --- | --- | --- | --- |
-| SRP — `order_service.py` `OrderService` | One class validates, prices, pays, persists, notifies, and prints receipts | Move validation, pricing, payment, persistence, notification, and receipt printing behind collaborators; `OrderService` only sequences them | Phase 2 | Soroush S8 |
+| SRP — `order_service.py` `OrderService` | The initial service owns validation rules, shipping/total calculation, status transition, notification-message construction, and receipt output while constructing concrete collaborators | Extract validation and receipt output, inject collaborators, and retain use-case orchestration and calculations in `OrderService` | Phase 2 | Soroush S8 |
 | OCP — `payment.py` `PaymentProcessor.process` | Adding a method adds another branch to a central `if`/`elif` chain | Define a payment-handler contract and registered handlers (credit card, PayPal, Bitcoin); later cash is a new handler plus registration | Phase 1, 3 | Armin A8, A9 |
 | OCP — `pricing.py` `DiscountCalculator.calculate` | Adding a rule adds a branch to the discount chain | Evaluate an injected ordered list of discount rules, preserving priority | Phase 2 | Soroush S8 |
 | LSP — `notification.py` `SmsOnlyNotifier` | Subtype raises `NotImplementedError` for inherited email and push, so it cannot substitute `NotificationService` | Remove the inheritance relationship and define a single-`send` notifier contract that every notifier fully implements | Phase 2 | Soroush S8 |
@@ -134,7 +135,7 @@ the ownership table below), so their edits never overlap on a working branch.
 
 | Phase | Owner (commit) | Files edited | Out of scope |
 | --- | --- | --- | --- |
-| Phase 0 — baseline | Armin A8 (preparatory commit) | `02-Applied-OOD-Principles/store`, `tests/*` copied from the `6908c62` tree | No cash logic anywhere; no refactoring |
+| Phase 0 — baseline | Armin A8 (preparatory commit) | `02-Applied-OOD-Principles/store` copied from the `6908c62` tree; tests separately created/adapted | No cash logic anywhere; no refactoring |
 | Phase 1 — payment abstractions | Armin A8 | `store/contracts.py` (payment contract only), `store/payment.py`, `store/main.py` (wiring in composition root unchanged otherwise), `tests/test_payment.py` | `notification.py`, `pricing.py`, `order_service.py`, `storage.py`, `receipt.py`, `validation.py` |
 | Phase 2 — decouple workflow | Soroush S8 | `store/contracts.py` (pricing, persistence, notification contracts), `store/notification.py`, `store/pricing.py`, `store/storage.py`, `store/receipt.py`, `store/validation.py`, `store/order_service.py`, `store/main.py`, `tests/test_order_service.py`, `tests/test_existing_payments.py` | `store/payment.py`, `tests/test_payment.py` |
 | Phase 3 — cash extension | Armin A9 (new cash handler) | `store/payment.py` (add `CashHandler`), `store/main.py` (composition-root registration and demo cash order) | No edits to `order_service.py` or existing handlers |
@@ -147,10 +148,10 @@ later phase explicitly requires it.
 
 ### Phase 0: Establish The Applied Baseline
 
-1. Copy the `store/` tree and tests from commit `6908c62` into
+1. Copy the `store/` tree from commit `6908c62` into
    `02-Applied-OOD-Principles`.
-2. Add characterization tests for the existing payment methods and checkout
-   behavior.
+2. Separately create or adapt characterization tests for the existing payment
+   methods and checkout behavior; commit `6908c62` contains no tests.
 3. Run the tests and demo before refactoring.
 
 Expected result: the applied folder reproduces the original behavior and does
@@ -230,8 +231,7 @@ python -m unittest discover -s tests -v
 python -m store.main
 ```
 
-This environment resolves `python3` rather than `python`; adjust the commands
-accordingly when running locally.
+The tested commands use `python`; retain those commands when running locally.
 
 ## Acceptance Criteria
 
@@ -262,5 +262,5 @@ revised as follows.
   already contains cash).
 - A8 and S8 file ownership is documented in the table above so the two
   contributors never edit the same files within the same phase window.
-- The concrete dependency map at commit `6908c862` is unchanged by this review
+- The concrete dependency map at commit `6908c62` is unchanged by this review
   and remains the "before" state for the final A10 comparison.
